@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
+import API_BASE_URL from "@/services/api";
 
 const journey = [
     {
@@ -61,6 +64,58 @@ const capabilities = [
 ];
 
 export default function CandidateDashboardPage() {
+    const [user, setUser] = useState<{
+        name: string;
+        email: string;
+    } | null>(null);
+
+    const [loadingUser, setLoadingUser] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const token = localStorage.getItem("access_token");
+
+                if (!token) {
+                    console.error("No access token found");
+                    return;
+                }
+
+                const response = await fetch(
+                    `${API_BASE_URL}/users/me`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Failed to fetch user profile"
+                    );
+                }
+
+                const data = await response.json();
+
+                setUser({
+                    name: data.name,
+                    email: data.email,
+                });
+            } catch (error) {
+                console.error(
+                    "Failed to fetch user:",
+                    error
+                );
+            } finally {
+                setLoadingUser(false);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
     return (
         <main className="min-h-screen bg-[#F6F7F9]">
 
@@ -85,11 +140,23 @@ export default function CandidateDashboardPage() {
                         <div className="flex items-center gap-3">
 
                             <span className="hidden text-sm text-[#526170] sm:block">
-                                Md Shaqib Hussain
+                                {loadingUser
+                                    ? "Loading..."
+                                    : user?.name || "Candidate"}
                             </span>
 
                             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F2F0EB] text-xs font-bold text-[#0B1F33]">
-                                SH
+                                {loadingUser
+                                    ? "..."
+                                    : user?.name
+                                        ? user.name
+                                            .split(" ")
+                                            .filter(Boolean)
+                                            .map((word) => word[0])
+                                            .join("")
+                                            .slice(0, 2)
+                                            .toUpperCase()
+                                        : "U"}
                             </div>
 
                         </div>
@@ -186,8 +253,8 @@ export default function CandidateDashboardPage() {
 
                                                     <span
                                                         className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.status === "Complete"
-                                                                ? "bg-[#EAF6F1] text-[#167A5B]"
-                                                                : "bg-[#EAF2FB] text-[#2563A6]"
+                                                            ? "bg-[#EAF6F1] text-[#167A5B]"
+                                                            : "bg-[#EAF2FB] text-[#2563A6]"
                                                             }`}
                                                     >
                                                         {item.status}

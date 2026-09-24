@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+
 import { useRouter } from "next/navigation";
+import API_BASE_URL from "@/services/api";
 
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
-import API_BASE_URL from "@/services/api";
 
-export default function RegisterPage() {
-    const router = useRouter();
-
+export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         setError("");
@@ -24,37 +24,22 @@ export default function RegisterPage() {
         try {
             const formData = new FormData(e.currentTarget);
 
-            const name = String(formData.get("fullName") || "").trim();
             const email = String(formData.get("email") || "").trim();
             const password = String(formData.get("password") || "");
-            const terms = formData.get("terms");
 
-            // Frontend validation
-            if (!name || !email || !password) {
-                setError("Please fill in all required fields.");
+            if (!email || !password) {
+                setError("Please enter your email and password.");
                 return;
             }
 
-            if (password.length < 8) {
-                setError("Password must be at least 8 characters.");
-                return;
-            }
-
-            if (!terms) {
-                setError("Please agree to the terms and privacy notice.");
-                return;
-            }
-
-            // Send registration request to FastAPI
             const response = await fetch(
-                `${API_BASE_URL}/auth/register`,
+                `${API_BASE_URL}/auth/login`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        name,
                         email,
                         password,
                     }),
@@ -63,17 +48,29 @@ export default function RegisterPage() {
 
             const data = await response.json();
 
-            // Backend returned an error
             if (!response.ok) {
                 throw new Error(
                     typeof data.detail === "string"
                         ? data.detail
-                        : "Registration failed. Please try again."
+                        : "Invalid email or password."
                 );
             }
 
-            // Registration successful
-            router.push("/auth/login");
+            // Save JWT token
+            localStorage.setItem(
+                "access_token",
+                data.access_token
+            );
+
+            // Save token type if provided
+            localStorage.setItem(
+                "token_type",
+                data.token_type || "bearer"
+            );
+
+            // Login successful
+            router.push("/candidate/dashboard");
+
         } catch (err) {
             setError(
                 err instanceof Error
@@ -93,6 +90,7 @@ export default function RegisterPage() {
                 <Container>
                     <div className="flex h-16 items-center justify-between">
 
+                        {/* Logo */}
                         <Link
                             href="/"
                             className="flex items-center gap-3"
@@ -106,14 +104,15 @@ export default function RegisterPage() {
                             </span>
                         </Link>
 
+                        {/* Register Link */}
                         <p className="text-sm text-[#526170]">
-                            Already have an account?{" "}
+                            Don't have an account?{" "}
 
                             <Link
-                                href="/auth/login"
+                                href="/auth/register"
                                 className="font-semibold text-[#0B1F33] hover:underline"
                             >
-                                Sign in
+                                Create account
                             </Link>
                         </p>
 
@@ -121,8 +120,9 @@ export default function RegisterPage() {
                 </Container>
             </header>
 
-            {/* Registration Area */}
+            {/* Login Area */}
             <section className="py-12 sm:py-16 lg:py-20">
+
                 <Container>
 
                     <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
@@ -131,16 +131,17 @@ export default function RegisterPage() {
                         <div className="pt-2 lg:sticky lg:top-8">
 
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#526F8F]">
-                                Begin your METI journey
+                                Welcome back
                             </p>
 
                             <h1 className="mt-4 text-3xl font-bold tracking-[-0.025em] text-[#17212B] sm:text-4xl">
-                                Create your METI account.
+                                Continue your METI journey.
                             </h1>
 
                             <p className="mt-5 max-w-md text-base leading-7 text-[#526170]">
-                                Register to begin your structured assessment
-                                journey and build your candidate profile.
+                                Sign in to access your candidate profile,
+                                assessment journey, reports, and development
+                                insights.
                             </p>
 
                             {/* Journey */}
@@ -148,25 +149,26 @@ export default function RegisterPage() {
 
                                 <JourneyStep
                                     number="01"
-                                    title="Create your account"
-                                    description="Set up your secure METI identity."
+                                    title="Sign in securely"
+                                    description="Access your secure METI account."
                                     active
                                 />
 
                                 <JourneyStep
                                     number="02"
                                     title="Complete your profile"
-                                    description="Tell us about your education and experience."
+                                    description="Review your education, experience, and skills."
                                 />
 
                                 <JourneyStep
                                     number="03"
-                                    title="Begin your assessment"
-                                    description="Complete the assessment associated with your selected journey."
+                                    title="Continue your assessment"
+                                    description="Access the assessment associated with your selected journey."
                                 />
 
                             </div>
 
+                            {/* Information Box */}
                             <div className="mt-8 rounded-lg border border-[#DCE2E8] bg-white p-5">
 
                                 <p className="text-sm font-semibold text-[#17212B]">
@@ -174,60 +176,49 @@ export default function RegisterPage() {
                                 </p>
 
                                 <p className="mt-2 text-sm leading-6 text-[#526170]">
-                                    Your profile and assessment information are
-                                    used to support your assessment, reporting,
-                                    and development journey.
+                                    Your account information is used to provide
+                                    your personalized assessment and development
+                                    experience.
                                 </p>
 
                             </div>
 
                         </div>
 
-                        {/* Registration Card */}
+                        {/* Login Card */}
                         <div className="rounded-xl border border-[#DCE2E8] bg-white p-6 shadow-[0_8px_30px_rgba(11,31,51,0.06)] sm:p-8">
 
+                            {/* Header */}
                             <div>
 
                                 <p className="text-sm font-semibold text-[#0B1F33]">
-                                    Account registration
+                                    Account access
                                 </p>
 
                                 <h2 className="mt-2 text-2xl font-bold tracking-[-0.02em] text-[#17212B]">
-                                    Create your account
+                                    Sign in to your account
                                 </h2>
 
                                 <p className="mt-2 text-sm leading-6 text-[#526170]">
-                                    Use your details below to create your METI
-                                    candidate account.
+                                    Enter your credentials below to continue
+                                    your METI journey.
                                 </p>
 
                             </div>
 
-                            {/* Form */}
+                            {/* Error */}
+                            {error && (
+                                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                                    {error}
+                                </div>
+                            )}
+
+
+                            {/* Login Form */}
                             <form
-                                onSubmit={handleSubmit}
+                                onSubmit={handleLogin}
                                 className="mt-8 space-y-5"
                             >
-
-                                {/* Full Name */}
-                                <div>
-
-                                    <label
-                                        htmlFor="fullName"
-                                        className="mb-2 block text-sm font-medium text-[#17212B]"
-                                    >
-                                        Full name
-                                    </label>
-
-                                    <input
-                                        id="fullName"
-                                        name="fullName"
-                                        type="text"
-                                        placeholder="Enter your full name"
-                                        className="meti-input h-11 px-3 text-sm"
-                                    />
-
-                                </div>
 
                                 {/* Email */}
                                 <div>
@@ -249,90 +240,26 @@ export default function RegisterPage() {
 
                                 </div>
 
-                                {/* Mobile + Country */}
-                                <div className="grid gap-5 sm:grid-cols-2">
-
-                                    <div>
-
-                                        <label
-                                            htmlFor="mobile"
-                                            className="mb-2 block text-sm font-medium text-[#17212B]"
-                                        >
-                                            Mobile number
-                                        </label>
-
-                                        <input
-                                            id="mobile"
-                                            name="mobile"
-                                            type="tel"
-                                            placeholder="+91 98765 43210"
-                                            className="meti-input h-11 px-3 text-sm"
-                                        />
-
-                                    </div>
-
-                                    <div>
-
-                                        <label
-                                            htmlFor="country"
-                                            className="mb-2 block text-sm font-medium text-[#17212B]"
-                                        >
-                                            Country
-                                        </label>
-
-                                        <select
-                                            id="country"
-                                            name="country"
-                                            defaultValue=""
-                                            className="meti-input h-11 px-3 text-sm"
-                                        >
-                                            <option value="" disabled>
-                                                Select country
-                                            </option>
-
-                                            <option value="IN">
-                                                India
-                                            </option>
-
-                                            <option value="US">
-                                                United States
-                                            </option>
-
-                                            <option value="GB">
-                                                United Kingdom
-                                            </option>
-
-                                            <option value="AE">
-                                                United Arab Emirates
-                                            </option>
-
-                                            <option value="SG">
-                                                Singapore
-                                            </option>
-
-                                            <option value="CA">
-                                                Canada
-                                            </option>
-
-                                            <option value="AU">
-                                                Australia
-                                            </option>
-
-                                        </select>
-
-                                    </div>
-
-                                </div>
-
                                 {/* Password */}
                                 <div>
 
-                                    <label
-                                        htmlFor="password"
-                                        className="mb-2 block text-sm font-medium text-[#17212B]"
-                                    >
-                                        Password
-                                    </label>
+                                    <div className="flex items-center justify-between">
+
+                                        <label
+                                            htmlFor="password"
+                                            className="mb-2 block text-sm font-medium text-[#17212B]"
+                                        >
+                                            Password
+                                        </label>
+
+                                        <button
+                                            type="button"
+                                            className="text-xs font-semibold text-[#526170] hover:text-[#0B1F33]"
+                                        >
+                                            Forgot password?
+                                        </button>
+
+                                    </div>
 
                                     <div className="relative">
 
@@ -344,7 +271,7 @@ export default function RegisterPage() {
                                                     ? "text"
                                                     : "password"
                                             }
-                                            placeholder="Create a secure password"
+                                            placeholder="Enter your password"
                                             className="meti-input h-11 px-3 pr-20 text-sm"
                                         />
 
@@ -364,43 +291,28 @@ export default function RegisterPage() {
 
                                     </div>
 
-                                    <p className="mt-2 text-xs text-[#7A8794]">
-                                        Use at least 8 characters.
-                                    </p>
-
                                 </div>
 
-                                {/* Consent */}
-                                <div className="rounded-lg border border-[#E9EDF1] bg-[#F6F7F9] p-4">
+                                {/* Remember Me */}
+                                <div className="flex items-center gap-3">
 
-                                    <label className="flex cursor-pointer gap-3">
+                                    <input
+                                        id="remember"
+                                        name="remember"
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-[#C5CED8] accent-[#0B1F33]"
+                                    />
 
-                                        <input
-                                            type="checkbox"
-                                            name="terms"
-                                            className="mt-1 h-4 w-4 rounded border-[#C5CED8] accent-[#0B1F33]"
-                                        />
-
-                                        <span className="text-sm leading-6 text-[#526170]">
-                                            I agree to the METI terms and
-                                            privacy notice and understand that
-                                            my information will be used to
-                                            provide the assessment and
-                                            development experience.
-                                        </span>
-
+                                    <label
+                                        htmlFor="remember"
+                                        className="text-sm text-[#526170]"
+                                    >
+                                        Keep me signed in
                                     </label>
 
                                 </div>
 
-                                {/* Error Message */}
-                                {error && (
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-                                        {error}
-                                    </div>
-                                )}
-
-                                {/* Continue */}
+                                {/* Login Button */}
                                 <Button
                                     type="submit"
                                     variant="primary"
@@ -408,15 +320,21 @@ export default function RegisterPage() {
                                     className="w-full"
                                     disabled={loading}
                                 >
-                                    {loading
-                                        ? "Creating Account..."
-                                        : "Create Account"}
+                                    {loading ? "Signing In..." : "Sign In"}
                                 </Button>
 
-                                <p className="text-center text-xs leading-5 text-[#7A8794]">
-                                    You will review additional consent and
-                                    assessment information before beginning
-                                    the assessment.
+                                {/* Register */}
+                                <p className="text-center text-sm text-[#526170]">
+
+                                    Don't have an account?{" "}
+
+                                    <Link
+                                        href="/auth/register"
+                                        className="font-semibold text-[#0B1F33] hover:underline"
+                                    >
+                                        Create one
+                                    </Link>
+
                                 </p>
 
                             </form>
@@ -426,11 +344,15 @@ export default function RegisterPage() {
                     </div>
 
                 </Container>
+
             </section>
 
         </main>
     );
 }
+
+
+/* Journey Step Component */
 
 function JourneyStep({
     number,
@@ -448,8 +370,8 @@ function JourneyStep({
 
             <div
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${active
-                        ? "bg-[#0B1F33] text-white"
-                        : "bg-[#E9EDF1] text-[#526170]"
+                    ? "bg-[#0B1F33] text-white"
+                    : "bg-[#E9EDF1] text-[#526170]"
                     }`}
             >
                 {number}
