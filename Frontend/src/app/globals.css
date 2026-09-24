@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+/* =========================================================
+   METI — Global Design System
+   Consulting + Enterprise + AI + Assessment
+   ========================================================= */
+
+:root {
+    /* =========================================
+     METI — Brand Colors
+     ========================================= */
+
+    --meti-navy: #0B1F33;
+    --meti-navy-900: #071522;
+    --meti-navy-700: #163A5F;
+    --meti-blue: #4F6F8F;
+
+    /* =========================================
+     METI — Backgrounds
+     ========================================= */
+
+    --meti-background: #F6F7F9;
+    --meti-warm: #F2F0EB;
+    --meti-surface: #FFFFFF;
+
+    /* =========================================
+     METI — Typography
+     ========================================= */
+
+    --meti-text: #17212B;
+    --meti-text-secondary: #526170;
+    --meti-text-muted: #7A8794;
+
+    /* =========================================
+     METI — Borders
+     ========================================= */
+
+    --meti-border: #DCE2E8;
+    --meti-border-strong: #C5CED8;
+    --meti-border-light: #E9EDF1;
+
+    /* =========================================
+     METI — Semantic Colors
+     ========================================= */
+
+    --meti-success: #167A5B;
+    --meti-success-light: #EAF6F1;
+
+    --meti-warning: #B7791F;
+    --meti-warning-light: #FFF7E6;
+
+    --meti-error: #B42318;
+    --meti-error-light: #FDECEC;
+
+    --meti-info: #2563A6;
+    --meti-info-light: #EAF2FB;
+}
+
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+
+* {
+    border-color: var(--meti-border);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--meti-background);
+    color: var(--meti-text);
+    font-family: Inter, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* =========================================================
+   TEXT SELECTION
+   ========================================================= */
+
+::selection {
+    background: var(--meti-navy);
+    color: #FFFFFF;
+}
+
+
+/* =========================================================
+   METI — SURFACES
+   ========================================================= */
+
+.meti-surface {
+    background: var(--meti-surface);
+    color: var(--meti-text);
+}
+
+.meti-card {
+    background: var(--meti-surface);
+    border: 1px solid var(--meti-border);
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   METI — TYPOGRAPHY UTILITIES
+   ========================================================= */
+
+.meti-heading {
+    color: var(--meti-text);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.meti-secondary-text {
+    color: var(--meti-text-secondary);
+}
+
+.meti-muted {
+    color: var(--meti-text-muted);
+}
+
+
+/* =========================================================
+   METI — BUTTON FOUNDATION
+   ========================================================= */
+
+.meti-button-primary {
+    background: var(--meti-navy);
+    color: #FFFFFF;
+    border: 1px solid var(--meti-navy);
+    border-radius: 8px;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        transform 150ms ease;
+}
+
+.meti-button-primary:hover {
+    background: var(--meti-navy-900);
+    border-color: var(--meti-navy-900);
+}
+
+.meti-button-primary:active {
+    transform: translateY(1px);
+}
+
+.meti-button-secondary {
+    background: var(--meti-surface);
+    color: var(--meti-text);
+    border: 1px solid var(--meti-border-strong);
+    border-radius: 8px;
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease;
+}
+
+.meti-button-secondary:hover {
+    background: var(--meti-background);
+    border-color: var(--meti-navy-700);
+}
+
+
+/* =========================================================
+   METI — FORM ELEMENTS
+   ========================================================= */
+
+.meti-input {
+    width: 100%;
+    background: var(--meti-surface);
+    color: var(--meti-text);
+    border: 1px solid var(--meti-border-strong);
+    border-radius: 8px;
+    outline: none;
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.meti-input::placeholder {
+    color: var(--meti-text-muted);
+}
+
+.meti-input:focus {
+    border-color: var(--meti-navy-700);
+    box-shadow: 0 0 0 3px rgba(22, 58, 95, 0.10);
+}
+
+
+/* =========================================================
+   METI — SEMANTIC STATES
+   ========================================================= */
+
+.meti-success {
+    color: var(--meti-success);
+    background: var(--meti-success-light);
+}
+
+.meti-warning {
+    color: var(--meti-warning);
+    background: var(--meti-warning-light);
+}
+
+.meti-error {
+    color: var(--meti-error);
+    background: var(--meti-error-light);
+}
+
+.meti-info {
+    color: var(--meti-info);
+    background: var(--meti-info-light);
+}
+
+
+/* =========================================================
+   METI — ACCESSIBILITY
+   ========================================================= */
+
+button,
+a,
+input,
+textarea,
+select {
+    outline-color: var(--meti-navy-700);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--meti-navy-700);
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   METI — REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
