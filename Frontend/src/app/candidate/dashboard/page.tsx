@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Container from "@/components/layout/Container";
 import Button from "@/components/ui/Button";
 import API_BASE_URL from "@/services/api";
+import { uploadResume } from "@/services/resume";
 
 const journey = [
     {
@@ -71,6 +72,18 @@ export default function CandidateDashboardPage() {
 
     const [loadingUser, setLoadingUser] = useState(true);
 
+    const [selectedFile, setSelectedFile] =
+        useState<File | null>(null);
+
+    const [uploadingResume, setUploadingResume] =
+        useState(false);
+
+    const [uploadMessage, setUploadMessage] =
+        useState("");
+
+    const [resumeId, setResumeId] =
+        useState<number | null>(null);
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -115,6 +128,50 @@ export default function CandidateDashboardPage() {
 
         fetchUser();
     }, []);
+
+    const handleResumeUpload = async () => {
+        if (!selectedFile) {
+            setUploadMessage("Please select a resume first.");
+            return;
+        }
+
+        const allowedTypes = [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ];
+
+        if (!allowedTypes.includes(selectedFile.type)) {
+            setUploadMessage(
+                "Only PDF and DOCX files are allowed."
+            );
+            return;
+        }
+
+        setUploadingResume(true);
+        setUploadMessage("");
+
+        try {
+            const data = await uploadResume(selectedFile);
+
+            setResumeId(data.resume_id);
+
+            setUploadMessage(
+                "Resume uploaded successfully."
+            );
+
+            setSelectedFile(null);
+        } catch (error) {
+            console.error("Resume upload failed:", error);
+
+            setUploadMessage(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to upload resume."
+            );
+        } finally {
+            setUploadingResume(false);
+        }
+    };
 
     return (
         <main className="min-h-screen bg-[#F6F7F9]">
@@ -365,6 +422,79 @@ export default function CandidateDashboardPage() {
 
                         {/* Right */}
                         <aside className="space-y-6">
+
+                            {/* Resume Upload */}
+                            <div className="rounded-xl border border-[#DCE2E8] bg-white p-6">
+
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526F8F]">
+                                    Resume
+                                </p>
+
+                                <h2 className="mt-2 text-xl font-bold text-[#17212B]">
+                                    Upload your resume
+                                </h2>
+
+                                <p className="mt-3 text-sm leading-6 text-[#526170]">
+                                    Upload your latest resume so METI can personalize your
+                                    assessment.
+                                </p>
+
+                                <label className="mt-5 block cursor-pointer rounded-lg border border-dashed border-[#C8D0D8] p-4 text-center hover:bg-[#F6F7F9]">
+
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.docx"
+                                        className="hidden"
+                                        onChange={(event) => {
+                                            const file =
+                                                event.target.files?.[0] || null;
+
+                                            setSelectedFile(file);
+                                            setUploadMessage("");
+                                            setResumeId(null);
+                                        }}
+                                    />
+
+                                    <p className="text-sm font-medium text-[#17212B]">
+                                        {selectedFile
+                                            ? selectedFile.name
+                                            : "Choose PDF or DOCX"}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-[#7A8794]">
+                                        Click to select your resume
+                                    </p>
+
+                                </label>
+
+                                {selectedFile && (
+                                    <Button
+                                        variant="primary"
+                                        className="mt-4 w-full"
+                                        onClick={handleResumeUpload}
+                                        disabled={uploadingResume}
+                                    >
+                                        {uploadingResume
+                                            ? "Uploading..."
+                                            : "Upload Resume"}
+                                    </Button>
+                                )}
+
+                                {uploadMessage && (
+                                    <p
+                                        className={`mt-3 text-xs ${resumeId
+                                            ? "text-[#167A5B]"
+                                            : "text-[#B42318]"
+                                            }`}
+                                    >
+                                        {uploadMessage}
+                                    </p>
+                                )}
+
+                            </div>
+
+
+                            {/* Next action */}
 
                             {/* Next action */}
                             <div className="rounded-xl border border-[#DCE2E8] bg-white p-6">
