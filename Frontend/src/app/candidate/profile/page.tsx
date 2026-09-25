@@ -27,7 +27,7 @@ export default function CandidateProfilePage() {
     function handleContinue(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        router.push("/candidate/assessment");
+        router.push("/candidate/assessments");
     }
 
     return (

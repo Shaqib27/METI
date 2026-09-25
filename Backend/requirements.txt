@@ -7,3 +7,4 @@ python-jose[cryptography]
 pwdlib[argon2]
 passlib[bcrypt]
 bcrypt
+google-genai
