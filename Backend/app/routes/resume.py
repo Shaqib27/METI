@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Resume
 from app.core.security import verify_access_token
+from app.services.resume_service import extract_resume_text
 
 
 router = APIRouter(
@@ -112,6 +113,22 @@ async def upload_resume(
     db.refresh(resume)
 
     # --------------------------------------------------------
+    # Extract resume text
+    # --------------------------------------------------------
+
+    try:
+        extracted_text = extract_resume_text(
+            file_path=str(file_path),
+            file_type=file_extension,
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to extract resume text: {str(e)}",
+        )
+
+    # --------------------------------------------------------
     # Response
     # --------------------------------------------------------
 
@@ -120,4 +137,5 @@ async def upload_resume(
         "resume_id": resume.id,
         "filename": resume.filename,
         "file_type": resume.file_type,
+        "text_length": len(extracted_text),
     }
