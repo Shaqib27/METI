@@ -1,4 +1,4 @@
-# 🚀 AI Career Assessment Platform
+# 🚀 METI — Modus Enterprise Talent Intelligence
 
 > **An AI-powered career assessment platform that analyzes a candidate's resume, generates personalized assessments using Generative AI, evaluates responses, identifies skill gaps, and produces a personalized career roadmap.**
 
