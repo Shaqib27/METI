@@ -15,8 +15,10 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Resume
 from app.core.security import verify_access_token
-from app.services.resume_service import extract_resume_text
-
+from app.services.resume_service import (
+    extract_resume_text,
+    parse_resume,
+)
 
 router = APIRouter(
     prefix="/resume",
@@ -98,21 +100,6 @@ async def upload_resume(
             buffer.write(chunk)
 
     # --------------------------------------------------------
-    # Save resume record
-    # --------------------------------------------------------
-
-    resume = Resume(
-        user_id=user_id,
-        filename=file.filename,
-        file_path=str(file_path),
-        file_type=file_extension.replace(".", ""),
-    )
-
-    db.add(resume)
-    db.commit()
-    db.refresh(resume)
-
-    # --------------------------------------------------------
     # Extract resume text
     # --------------------------------------------------------
 
@@ -123,10 +110,30 @@ async def upload_resume(
         )
 
     except Exception as e:
+        # Remove uploaded file if text extraction fails
+        if file_path.exists():
+            file_path.unlink()
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to extract resume text: {str(e)}",
         )
+
+    # --------------------------------------------------------
+    # Save resume record
+    # --------------------------------------------------------
+
+    resume = Resume(
+        user_id=user_id,
+        filename=file.filename,
+        file_path=str(file_path),
+        file_type=file_extension.replace(".", ""),
+        extracted_text=extracted_text,
+    )
+
+    db.add(resume)
+    db.commit()
+    db.refresh(resume)
 
     # --------------------------------------------------------
     # Response
@@ -138,4 +145,57 @@ async def upload_resume(
         "filename": resume.filename,
         "file_type": resume.file_type,
         "text_length": len(extracted_text),
+    }
+
+@router.get("/{resume_id}")
+def get_resume(
+    resume_id: int,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    # --------------------------------------------------------
+    # Verify JWT
+    # --------------------------------------------------------
+
+    user_id = verify_access_token(
+        credentials.credentials
+    )
+
+    # --------------------------------------------------------
+    # Find resume belonging to logged-in user
+    # --------------------------------------------------------
+
+    resume = (
+        db.query(Resume)
+        .filter(
+            Resume.id == resume_id,
+            Resume.user_id == user_id,
+        )
+        .first()
+    )
+
+    if not resume:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume not found",
+        )
+
+    # --------------------------------------------------------
+    # Parse extracted resume text
+    # --------------------------------------------------------
+
+    profile = parse_resume(
+        resume.extracted_text or ""
+    )
+
+    # --------------------------------------------------------
+    # Response
+    # --------------------------------------------------------
+
+    return {
+        "resume_id": resume.id,
+        "filename": resume.filename,
+        "file_type": resume.file_type,
+        "uploaded_at": resume.uploaded_at,
+        "profile": profile,
     }

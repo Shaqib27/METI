@@ -67,6 +67,16 @@ class Resume(Base):
         nullable=False
     )
 
+    extracted_text = Column(
+        String,
+        nullable=True
+    )
+
+    target_role = Column(
+        String(150),
+        nullable=True
+    )
+    
     uploaded_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
